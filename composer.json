@@ -1,0 +1,19 @@
+{
+    "name": "ca-laravel/sample-api",
+    "description": "Package supports developers to develop API quickly",
+    "type": "library",
+    "require": {
+        "tcg/voyager": "*"
+    },
+    "license": "0.0.1",
+    "autoload": {
+        "psr-4": {
+            "CaLaravel\\SampleApi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cuongpham"
+        }
+    ]
+}

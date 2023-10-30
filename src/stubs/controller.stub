@@ -1,0 +1,43 @@
+<?php
+
+namespace {{Namespace}};
+
+use App\Http\Controllers\Controller;
+use App\Models\{{ModelName}};
+use Illuminate\Http\Request;
+
+class {{ControllerName}} extends Controller
+{
+    public function index()
+    {
+        ${{modelNamePlural}} = {{ModelName}}::all();
+        return response()->json(${{modelNamePlural}});
+    }
+
+    public function show($id)
+    {
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
+        return response()->json(${{modelNamePlural}});
+    }
+
+    public function store(Request $request)
+    {
+        ${{modelNamePlural}} = new {{ModelName}}($request->all());
+        ${{modelNamePlural}}->save();
+        return response()->json(${{modelNamePlural}}, 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
+        ${{modelNamePlural}}->update($request->all());
+        return response()->json(${{modelNamePlural}}, 200);
+    }
+
+    public function destroy($id)
+    {
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
+        ${{modelNamePlural}}->delete();
+        return response()->json(null, 204);
+    }
+}
