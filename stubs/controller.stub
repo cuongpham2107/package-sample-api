@@ -10,13 +10,13 @@ class {{ControllerName}} extends Controller
 {
     public function index()
     {
-        ${{modelNamePlural}} = {{ModelName}}::with([ {{relations}} ])->get();
+        ${{modelNamePlural}} = {{ModelName}}::with([ {{test}} ])->get();
         return response()->json(${{modelNamePlural}});
     }
 
     public function show($id)
     {
-        ${{modelNamePlural}} = {{ModelName}}::with([ {{relations}} ])->find($id);
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
         return response()->json(${{modelNamePlural}});
     }
 
@@ -29,14 +29,14 @@ class {{ControllerName}} extends Controller
 
     public function update(Request $request, $id)
     {
-        ${{modelNamePlural}} = {{ModelName}}::with([ {{relations}} ])->find($id);
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
         ${{modelNamePlural}}->update($request->all());
         return response()->json(${{modelNamePlural}}, 200);
     }
 
     public function destroy($id)
     {
-        ${{modelNamePlural}} = {{ModelName}}::with([ {{relations}} ])->find($id);
+        ${{modelNamePlural}} = {{ModelName}}::find($id);
         ${{modelNamePlural}}->delete();
         return response()->json(null, 204);
     }

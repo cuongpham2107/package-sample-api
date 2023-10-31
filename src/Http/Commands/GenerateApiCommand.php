@@ -6,6 +6,8 @@ namespace CaLaravel\SampleApi\Http\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Route;
 
 class GenerateApiCommand extends Command
 {
@@ -62,32 +64,98 @@ class GenerateApiCommand extends Command
             $modelNamePlural = strtolower(Str::plural($modelName));
         
             // Tạo Controller từ mẫu
-           
             $controllerStub = File::get(__DIR__.'/../../stubs/controller.stub');
             
-            $controllerContent = str_replace(
-                ['{{Namespace}}', '{{ControllerName}}', '{{ModelName}}', '{{modelNamePlural}}'],
-                [$namespace, $controllerName, $modelName, $modelNamePlural],
-                $controllerStub
-            );
+            //Relation
+            $array_relations =  $this->check_relation_class('App\Models\\'.$modelName); //Product
+            if($array_relations){
+                $quotedArray = array_map(fn($item) => "'$item'", $array_relations);
+                $relations = implode(', ', $quotedArray);
+                // $test = 'test';
+                $controllerContent = str_replace(
+                    [
+                        '{{Namespace}}', 
+                        '{{ControllerName}}', 
+                        '{{ModelName}}', 
+                        '{{modelNamePlural}}',
+                        '{{relations}}'
+                    ],
+                    [
+                        $namespace, 
+                        $controllerName, 
+                        $modelName, 
+                        $modelNamePlural,
+                        $relations
+                    ],
+                    $controllerStub
+                );
+                
+            }
+            else{
+                $controllerContent = str_replace(
+                    [
+                        '{{Namespace}}', 
+                        '{{ControllerName}}', 
+                        '{{ModelName}}', 
+                        '{{modelNamePlural}}',
+                        '{{relations}}'
+                    ],
+                    [
+                        $namespace, 
+                        $controllerName, 
+                        $modelName, 
+                        $modelNamePlural,
+                        ''
+                    ],
+                    $controllerStub
+                );
+            }
+            
             
             $controllerPath = app_path(config('sample-api.controller-api-path') . $controllerName . '.php');
             
             File::put($controllerPath, $controllerContent);
-        
-            // Định nghĩa routes API
-            $apiRoutes = "Route::resource('" . $modelNamePlural . "'," . $namespace . '\\' . $controllerName . "::class);";
-            // Kiểm tra nếu tệp api.php tồn tại
-            if (File::exists(base_path('routes/api.php'))) {
-                // Kiểm tra nếu api.php không kết thúc bằng dòng mới, thêm một dòng mới
-                $content = File::get(base_path('routes/api.php'));
-                if (substr($content, -strlen(PHP_EOL)) !== PHP_EOL) {
-                    $apiRoutes = PHP_EOL . $apiRoutes;
+
+            $url = "api/".$modelNamePlural."";
+
+            $exists = collect(\Route::getRoutes())->contains(function ($route) use ($url) {
+                return $route->uri === $url;
+            });
+
+            if (!$exists) {
+                // Định nghĩa routes API
+                $apiRoutes = "Route::resource('" . $modelNamePlural . "'," . $namespace . '\\' . $controllerName . "::class);";
+                // Kiểm tra nếu tệp api.php tồn tại
+                if (File::exists(base_path('routes/api.php'))) {
+                    // Kiểm tra nếu api.php không kết thúc bằng dòng mới, thêm một dòng mới
+                    $content = File::get(base_path('routes/api.php'));
+                    if (substr($content, -strlen(PHP_EOL)) !== PHP_EOL) {
+                        $apiRoutes = PHP_EOL . $apiRoutes;
+                    }
                 }
+          
+                File::append(base_path('routes/api.php'), $apiRoutes);
+                $this->info('Route API đã được tạo thành công!');
             }
-            File::append(base_path('routes/api.php'), $apiRoutes);
-            $this->info('API đã được tạo thành công!');
+            $this->info('Controller API đã được tạo thành công!');
+          
         }
         
     }
+    function check_relation_class($class) : array {
+
+        $methods = get_class_methods($class);
+        $relationships = [];
+        foreach ($methods as $method) {
+            $reflection = new \ReflectionMethod($class, $method);
+            if ($reflection->getReturnType() instanceof \ReflectionNamedType) {
+                $returnType = $reflection->getReturnType()->getName();
+                if (is_subclass_of($returnType, Relation::class)) {
+                    $relationships[] = $method;
+                }
+            }
+        }
+        return $relationships;
+    }
+   
 }
